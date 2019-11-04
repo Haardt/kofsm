@@ -3,26 +3,38 @@
  */
 package costate
 
-import com.sun.xml.internal.messaging.saaj.util.ByteOutputStream
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.io.*
-import kotlin.coroutines.intrinsics.createCoroutineUnintercepted
 import kotlin.random.Random
-
-suspend fun setup(block: suspend GeneratorIterator<String>.() -> Unit): GeneratorIterator<String> {
-    val iterator = GeneratorIterator<String>()
-    iterator.nextStep = block.createCoroutineUnintercepted(receiver = iterator, completion = iterator)
-    return iterator
-}
 
 class Number(val value: Int = Random(153454350).nextInt(100))
 data class Context(@Transient val number: Number = Number()): Serializable
 
+suspend fun testing() {
+
+}
+
 fun main() = runBlocking {
-    val fsm = setup {
+    val fsm = StateMachine<String>({
+
+        fun test() {
+
+        }
+
         val variable = "Test ${smContext.number.value}"
+        loop@ while(true) {
+            waitForEvent()
+            println("Current event: $event")
+            when(event) {
+                "Test1" -> println("Event: $event")
+                "Test2" -> test()
+                else -> println ("Unknown event in state")
+            }
+        }
+        io {
+        }
         println("Step1 $event")
         waitForEvent()
         println("Step2 var: $variable / $event")
@@ -31,21 +43,26 @@ fun main() = runBlocking {
         waitForEvent()
 
         println("Step5 ${smContext.number.value} $event")
-    }
+    })
+
     // this: CoroutineScope
     launch {
         delay(200L)
         val context = Context()
 
+        println("Fire")
         fsm.fireEvent("Test1", context)
+        println("Fire Done")
+
+        fsm.fireEvent("Test299", context)
         fsm.fireEvent("Test2", context)
 
         println("Save")
-        val buffer = ByteOutputStream(1000);
+        val buffer = ByteArrayOutputStream(1000);
         ObjectOutputStream(BufferedOutputStream(buffer)).use { it.writeObject(fsm) }
         println("Buffer: $buffer")
         delay(2000)
-        val newFsm = ObjectInputStream(BufferedInputStream(buffer.newInputStream())).readObject() as GeneratorIterator<String>
+        val newFsm = ObjectInputStream(BufferedInputStream(buffer.toByteArray().inputStream())).readObject() as StateMachine<String>
 
         println("Loaded")
         newFsm.fireEvent("Test3", context)
