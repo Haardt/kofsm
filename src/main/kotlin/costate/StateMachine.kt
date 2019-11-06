@@ -4,18 +4,17 @@ import java.io.Serializable
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
-import kotlin.coroutines.RestrictsSuspension
 import kotlin.coroutines.intrinsics.*
 
-@RestrictsSuspension
+//@RestrictsSuspension
 @SinceKotlin("1.3")
-public abstract class GeneratorScope<in T> constructor() {
-    public abstract suspend fun waitForEvent()
+public abstract class WaitForEventScope constructor() {
+    public abstract suspend fun waitForEvent(): String
 }
 
 private typealias MyState = Int
 
-open class StateMachine<T>(block: suspend StateMachine<T>.() -> Unit) : GeneratorScope<T>(), Continuation<Unit>, Serializable {
+open class StateMachine<T>(block: suspend StateMachine<T>.() -> Unit) : WaitForEventScope(), Continuation<Unit>, Serializable {
     private var state = State_NotReady
     private var nextStep: Continuation<Unit>? = null
     var event = ""
@@ -72,12 +71,13 @@ open class StateMachine<T>(block: suspend StateMachine<T>.() -> Unit) : Generato
     }
 
 
-    override suspend fun waitForEvent() {
+    override suspend fun waitForEvent(): String {
         state = State_Ready
         val x: Unit = suspendCoroutineUninterceptedOrReturn<Unit> { c ->
             nextStep = c
             COROUTINE_SUSPENDED
         }
+        return event
     }
 
     // Completion continuation implementation

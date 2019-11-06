@@ -17,34 +17,8 @@ suspend fun testing() {
 }
 
 fun main() = runBlocking {
-    val fsm = StateMachine<String>({
 
-        fun test() {
-
-        }
-
-        val variable = "Test ${smContext.number.value}"
-        loop@ while(true) {
-            waitForEvent()
-            println("Current event: $event")
-            when(event) {
-                "Test1" -> println("Event: $event")
-                "Test2" -> test()
-                else -> println ("Unknown event in state")
-            }
-        }
-        io {
-        }
-        println("Step1 $event")
-        waitForEvent()
-        println("Step2 var: $variable / $event")
-        waitForEvent()
-        println("St3p4 $event")
-        waitForEvent()
-
-        println("Step5 ${smContext.number.value} $event")
-    })
-
+    val fsm = SMTest()
     // this: CoroutineScope
     launch {
         delay(200L)
@@ -53,8 +27,6 @@ fun main() = runBlocking {
         println("Fire")
         fsm.fireEvent("Test1", context)
         println("Fire Done")
-
-        fsm.fireEvent("Test299", context)
         fsm.fireEvent("Test2", context)
 
         println("Save")
